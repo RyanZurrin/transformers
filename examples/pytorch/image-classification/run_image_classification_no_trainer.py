@@ -302,7 +302,7 @@ def main():
     image_processor = AutoImageProcessor.from_pretrained(args.model_name_or_path)
     model = AutoModelForImageClassification.from_pretrained(
         args.model_name_or_path,
-        from_tf=bool(".ckpt" in args.model_name_or_path),
+        from_tf=".ckpt" in args.model_name_or_path,
         config=config,
         ignore_mismatched_sizes=args.ignore_mismatched_sizes,
     )
@@ -368,11 +368,19 @@ def main():
     no_decay = ["bias", "LayerNorm.weight"]
     optimizer_grouped_parameters = [
         {
-            "params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if all(nd not in n for nd in no_decay)
+            ],
             "weight_decay": args.weight_decay,
         },
         {
-            "params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)],
+            "params": [
+                p
+                for n, p in model.named_parameters()
+                if any(nd in n for nd in no_decay)
+            ],
             "weight_decay": 0.0,
         },
     ]
